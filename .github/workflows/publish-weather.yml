@@ -23,7 +23,7 @@ jobs:
       - name: Generate weather page
         run: python generate_weather_page.py
         env:
-          FMI_PLACE: Turku
+          FMI_PLACE: Helsinki
           OUTPUT_PATH: docs/index.html
 
       - name: Commit and push if changed
