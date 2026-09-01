@@ -1,0 +1,35 @@
+name: Publish FMI weather page
+
+on:
+  schedule:
+    - cron: '5 * * * *'   # hourly at :05
+  workflow_dispatch: {}    # manual trigger from the Actions tab
+  push:
+    branches: [main]        # rebuild immediately when you edit the script
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate weather page
+        run: python generate_weather_page.py
+        env:
+          FMI_PLACE: Turku
+          OUTPUT_PATH: docs/index.html
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          git diff --quiet --cached || git commit -m "Update weather page"
+          git push
