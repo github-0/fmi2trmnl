@@ -140,7 +140,7 @@ def render_html(place: str, forecast: list[dict]) -> str:
   }}
   .place {{ font-size: 34px; font-weight: 700; }}
   .updated {{ font-size: 18px; }}
-  .now {{ display: flex; align-items: baseline; gap: 40px; margin-bottom: 26px; }}
+  .now {{ display: flex; align-items: center; gap: 40px; margin-bottom: 26px; }}
   .temp {{ font-size: 96px; font-weight: 700; line-height: 1; }}
   .now-details {{ font-size: 24px; line-height: 1.5; }}
   table {{ width: 100%; border-collapse: collapse; font-size: 20px; }}
