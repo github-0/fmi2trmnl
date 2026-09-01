@@ -133,19 +133,19 @@ def render_html(place: str, forecast: list[dict]) -> str:
     font-family: 'DejaVu Sans', Arial, sans-serif;
     overflow: hidden;
   }}
-  .page {{ padding: 24px 32px; box-sizing: border-box; width: 100%; height: 100%; }}
+  .page {{ padding: 26px 34px; box-sizing: border-box; width: 100%; height: 100%; }}
   .header {{
     display: flex; justify-content: space-between; align-items: baseline;
-    border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 18px;
+    border-bottom: 3px solid #000; padding-bottom: 12px; margin-bottom: 20px;
   }}
-  .place {{ font-size: 34px; font-weight: 700; }}
-  .updated {{ font-size: 18px; }}
-  .now {{ display: flex; align-items: center; gap: 40px; margin-bottom: 26px; }}
-  .temp {{ font-size: 96px; font-weight: 700; line-height: 1; }}
-  .now-details {{ font-size: 24px; line-height: 1.5; }}
-  table {{ width: 100%; border-collapse: collapse; font-size: 20px; }}
-  th {{ text-align: left; border-bottom: 2px solid #000; padding: 6px 8px; }}
-  td {{ padding: 6px 8px; border-bottom: 1px solid #666; }}
+  .place {{ font-size: 36px; font-weight: 700; }}
+  .updated {{ font-size: 20px; }}
+  .now {{ display: flex; align-items: center; gap: 44px; margin-bottom: 29px; }}
+  .temp {{ font-size: 104px; font-weight: 700; line-height: 1; }}
+  .now-details {{ font-size: 26px; line-height: 1.55; }}
+  table {{ width: 100%; border-collapse: collapse; font-size: 22px; }}
+  th {{ text-align: left; border-bottom: 2px solid #000; padding: 7px 8px; }}
+  td {{ padding: 7px 8px; border-bottom: 1px solid #666; }}
 </style>
 </head>
 <body>
