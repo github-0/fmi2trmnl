@@ -18,13 +18,24 @@ import os
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 NS = {"BsWfs": "http://xml.fmi.fi/schema/wfs/2.0"}
-PARAMETERS = "Temperature,FeelsLike,WindSpeedMS,WindDirection,Precipitation1h,WeatherSymbol3"
+PARAMETERS = "Temperature,FeelsLike,WindSpeedMS,WindDirection,Precipitation1h,WeatherSymbol3,RadiationGlobal"
 HELSINKI_TZ = ZoneInfo("Europe/Helsinki")
 TARGET_HOURS = (3, 9, 15, 21)  # local Helsinki checkpoints shown in the table
+
+# --- TEST / EXPERIMENTAL ---
+# A "sunshine hour" = an hour where RadiationGlobal (total radiation, W/m²)
+# exceeds this threshold. 435 W/m² is NOT an official standard (e.g. WMO's
+# own sunshine definition uses direct radiation, which isn't available in
+# FMI's open point forecast) -- it's a value fitted after the fact to match
+# Foreca's reported hour counts for two test days (Fri 5h, Sat 4h, forecast
+# run 3.9.2026). Not validated for other days or other locations. Used for
+# comparison/testing purposes only -- not intended as a final production
+# value.
+SUNSHINE_TEST_THRESHOLD_WM2 = 435
 
 # Finnish descriptions per FMI's own reference
 # (ilmatieteenlaitos.fi/latauspalvelun-pikaohje), cross-checked against
@@ -101,10 +112,39 @@ def select_checkpoint_rows(forecast: list[dict], now_local: datetime,
     return candidates[:count]
 
 
+def count_sunshine_hours_test(forecast: list[dict], target_date) -> int | None:
+    """
+    TEST: count how many hours on a given local date have RadiationGlobal
+    above SUNSHINE_TEST_THRESHOLD_WM2. Returns None if there's no data for
+    that date (e.g. Harmonie's 66h forecast horizon doesn't reach that far).
+    """
+    hours = [
+        f for f in forecast
+        if to_helsinki(f["time"]).date() == target_date and f.get("RadiationGlobal") is not None
+    ]
+    if not hours:
+        return None
+    return sum(1 for f in hours if f["RadiationGlobal"] > SUNSHINE_TEST_THRESHOLD_WM2)
+
+
 def render_html(place: str, forecast: list[dict]) -> str:
     now_entry = forecast[0]
     now_local = to_helsinki(now_entry["time"])
     checkpoints = select_checkpoint_rows(forecast, now_local)
+
+    today_local = now_local.date()
+    day1 = today_local + timedelta(days=1)
+    day2 = today_local + timedelta(days=2)
+    sunshine_day1 = count_sunshine_hours_test(forecast, day1)
+    sunshine_day2 = count_sunshine_hours_test(forecast, day2)
+
+    def fmt_hours(h: int | None) -> str:
+        return "—" if h is None else f"{h} h"
+
+    sunshine_note = (
+        f"Testi: auringonsäteily (&gt;{SUNSHINE_TEST_THRESHOLD_WM2} W/m², kokeellinen) "
+        f"huomenna {fmt_hours(sunshine_day1)} · ylihuomenna {fmt_hours(sunshine_day2)}"
+    )
 
     rows = "\n".join(
         f"""
@@ -133,19 +173,23 @@ def render_html(place: str, forecast: list[dict]) -> str:
     font-family: 'DejaVu Sans', Arial, sans-serif;
     overflow: hidden;
   }}
-  .page {{ padding: 26px 34px; box-sizing: border-box; width: 100%; height: 100%; }}
+  .page {{ padding: 22px 34px 12px; box-sizing: border-box; width: 100%; height: 100%; display: flex; flex-direction: column; }}
   .header {{
     display: flex; justify-content: space-between; align-items: baseline;
-    border-bottom: 3px solid #000; padding-bottom: 12px; margin-bottom: 20px;
+    border-bottom: 3px solid #000; padding-bottom: 12px; margin-bottom: 18px;
   }}
   .place {{ font-size: 36px; font-weight: 700; }}
   .updated {{ font-size: 20px; }}
-  .now {{ display: flex; align-items: center; gap: 44px; margin-bottom: 29px; }}
+  .now {{ display: flex; align-items: center; gap: 44px; margin-bottom: 24px; }}
   .temp {{ font-size: 104px; font-weight: 700; line-height: 1; }}
   .now-details {{ font-size: 26px; line-height: 1.55; }}
   table {{ width: 100%; border-collapse: collapse; font-size: 22px; }}
-  th {{ text-align: left; border-bottom: 2px solid #000; padding: 7px 8px; }}
-  td {{ padding: 7px 8px; border-bottom: 1px solid #666; }}
+  th {{ text-align: left; border-bottom: 2px solid #000; padding: 6px 8px; }}
+  td {{ padding: 6px 8px; border-bottom: 1px solid #666; }}
+  .footer-note {{
+    margin-top: auto; padding-top: 8px;
+    font-size: 13px; color: #444; text-align: right;
+  }}
 </style>
 </head>
 <body>
@@ -171,6 +215,8 @@ def render_html(place: str, forecast: list[dict]) -> str:
       <tbody>{rows}
       </tbody>
     </table>
+
+    <div class="footer-note">{sunshine_note}</div>
   </div>
 </body>
 </html>
