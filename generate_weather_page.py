@@ -112,8 +112,8 @@ def render_html(place: str, forecast: list[dict]) -> str:
           <td>{dt_local.strftime('%H:%M')}</td>
           <td>{fmt(f.get('Temperature'))}°</td>
           <td>{weather_text(f.get('WeatherSymbol3'))}</td>
-          <td>{fmt(f.get('WindSpeedMS'), 1)} m/s</td>
-          <td>{fmt(f.get('Precipitation1h'), 1)} mm</td>
+          <td>{fmt(f.get('WindSpeedMS'))} m/s</td>
+          <td>{fmt(f.get('Precipitation1h'))} mm</td>
         </tr>"""
         for dt_local, f in checkpoints
     )
@@ -160,7 +160,7 @@ def render_html(place: str, forecast: list[dict]) -> str:
       <div class="now-details">
         {weather_text(now_entry.get('WeatherSymbol3'))}<br>
         Tuntuu kuin {fmt(now_entry.get('FeelsLike'))}°<br>
-        Tuuli {fmt(now_entry.get('WindSpeedMS'), 1)} m/s &nbsp;·&nbsp; Sade {fmt(now_entry.get('Precipitation1h'), 1)} mm
+        Tuuli {fmt(now_entry.get('WindSpeedMS'))} m/s &nbsp;·&nbsp; Sade {fmt(now_entry.get('Precipitation1h'))} mm
       </div>
     </div>
 
